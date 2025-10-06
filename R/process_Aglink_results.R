@@ -4,8 +4,8 @@ library(readxl)
 library(tidyverse)
 library(xlsx)
 
-viewer_file <- "DAIRY_viewer_2025.09.29_16h16.xlsx"
-merge_file <- "EUN_EUNMERGE_29092025_16h16.xlsx"
+viewer_file <- "DAIRY_viewer_2025.10.03_17h04.xlsx"
+merge_file <- "EUN_EUNMERGE_03102025_17h04.xlsx"
 
 # read results
 cube <- read_excel(paste("mergefiles/", merge_file, sep = ""), sheet = 1)
@@ -21,6 +21,9 @@ cube <- cube %>% select(!starts_with("19"))
 
 # convert code names to uppercase to avoid character mismatch later
 cube <- cube %>% mutate(region=toupper(region), product=toupper(product), attribute=toupper(attribute))
+
+# save the whole result cube for further use
+save(cube, file = paste("data/cube_", merge_file, ".Rdata", sep = ""))
 
 
 # function to extract Aglink  variable list from Excel
