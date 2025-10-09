@@ -4,8 +4,8 @@ library(readxl)
 library(tidyverse)
 library(xlsx)
 
-viewer_file <- "DAIRY_viewer_2025.10.03_17h04.xlsx"
-merge_file <- "EUN_EUNMERGE_03102025_17h04.xlsx"
+viewer_file <- "DAIRY_viewer_2025.10.09_10h05.xlsx"
+merge_file <- "EUN_EUNMERGE_09102025_10h05.xlsx"
 
 # read results
 cube <- read_excel(paste("mergefiles/", merge_file, sep = ""), sheet = 1)
@@ -23,7 +23,7 @@ cube <- cube %>% select(!starts_with("19"))
 cube <- cube %>% mutate(region=toupper(region), product=toupper(product), attribute=toupper(attribute))
 
 # save the whole result cube for further use
-save(cube, file = paste("data/cube_", merge_file, ".Rdata", sep = ""))
+save(cube, file = paste("data/cube_", format(Sys.time(), "%Y-%m-%d-%Hh%M"), ".Rdata", sep = ""))
 
 
 # function to extract Aglink  variable list from Excel
@@ -63,12 +63,12 @@ small_cube <- x %>% pivot_wider(names_from = "year", values_from = "value")
 
 
 # save to Excel
-write.xlsx(as.data.frame(small_cube), file = paste("to_copy_", format(Sys.time(), "%Y-%m-%d"), ".xlsx", sep = ""),
+write.xlsx(as.data.frame(small_cube), file = paste("to_copy_", format(Sys.time(), "%Y-%m-%d-%Hh%M"), ".xlsx", sep = ""),
            row.names = FALSE, col.names = TRUE, sheetName = "merge",
            showNA = TRUE)
 
 # add timestamp
 timestamp <- format(Sys.time(), "data copied from merge file on %Y.%m.%d-%H:%M:%S")
-write.xlsx(timestamp, file = paste("to_copy_", format(Sys.time(), "%Y-%m-%d"), ".xlsx", sep = ""), 
+write.xlsx(timestamp, file = paste("to_copy_", format(Sys.time(), "%Y-%m-%d-%Hh%M"), ".xlsx", sep = ""), 
            row.names = FALSE, col.names = TRUE, sheetName = "timestamp_merge",
            showNA = TRUE, append = TRUE)
