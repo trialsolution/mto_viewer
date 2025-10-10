@@ -4,8 +4,17 @@ library(readxl)
 library(tidyverse)
 library(xlsx)
 
-viewer_file <- "DAIRY_viewer_2025.10.09_10h05.xlsx"
-merge_file <- "EUN_EUNMERGE_09102025_10h05.xlsx"
+viewer_file <- "DAIRY_viewer_2025.10.09_16h27.xlsx"
+merge_file <- "EUN_EUNMERGE_09102025_16h27.xlsx"
+
+# time stamp of running this script
+# this time stamp will be used for all output files
+# so we can identify later when the files will have been created
+time_of_run <- format(Sys.time(), "%Y-%m-%d-%Hh%M")
+
+# call functions for data processing
+source("R/filter_results.R")
+
 
 # read results
 cube <- read_excel(paste("mergefiles/", merge_file, sep = ""), sheet = 1)
@@ -23,30 +32,9 @@ cube <- cube %>% select(!starts_with("19"))
 cube <- cube %>% mutate(region=toupper(region), product=toupper(product), attribute=toupper(attribute))
 
 # save the whole result cube for further use
-save(cube, file = paste("data/cube_", format(Sys.time(), "%Y-%m-%d-%Hh%M"), ".Rdata", sep = ""))
+save(cube, file = paste("data/cube_", merge_file, "_", time_of_run, ".Rdata", sep = ""))
 
 
-# function to extract Aglink  variable list from Excel
-# only the variables in use are needed from the huge merge file
-extract_variable_list <- function(viewer){
-  
-  # Read the variables to filter
-  my_selection <- read_excel(paste("viewers/", viewer, sep = ""), sheet = "relevantRes", range = cell_cols("C:E"))
-  my_selection <- as_tibble(my_selection)
-  
-  # remove empty lines
-  my_selection <- my_selection %>% filter(!is.na(region))
-  # remove calculations not available in the result cube
-  my_selection <- my_selection %>% filter(region!="otherASIA")
-  my_selection <- my_selection %>% filter(region!="NAFR")
-  my_selection <- my_selection %>% filter(region!="TMLE")
-  # convert names to uppercase to avoid character matching issues in the join
-  my_selection <- my_selection %>% mutate(region=toupper(region), product=toupper(product), attribute=toupper(attribute))
-  
-  # save the list of relevant Aglink variables
-  save(my_selection, file="data/my_selection.RData")
-  
-}
 
 # update variable list from the viewer, if needed 
 #extract_variable_list(viewer = viewer_file)
@@ -63,12 +51,25 @@ small_cube <- x %>% pivot_wider(names_from = "year", values_from = "value")
 
 
 # save to Excel
-write.xlsx(as.data.frame(small_cube), file = paste("to_copy_", format(Sys.time(), "%Y-%m-%d-%Hh%M"), ".xlsx", sep = ""),
+write.xlsx(as.data.frame(small_cube), file = paste("to_copy_", time_of_run, ".xlsx", sep = ""),
            row.names = FALSE, col.names = TRUE, sheetName = "merge",
            showNA = TRUE)
 
 # add timestamp
-timestamp <- format(Sys.time(), "data copied from merge file on %Y.%m.%d-%H:%M:%S")
-write.xlsx(timestamp, file = paste("to_copy_", format(Sys.time(), "%Y-%m-%d-%Hh%M"), ".xlsx", sep = ""), 
+timestamp <- paste("data copied from merge file ", merge_file, " on ", time_of_run, sep = "")
+write.xlsx(timestamp, file = paste("to_copy_", time_of_run, ".xlsx", sep = ""), 
            row.names = FALSE, col.names = TRUE, sheetName = "timestamp_merge",
            showNA = TRUE, append = TRUE)
+
+# append new data to the viewer file
+# the new data will be added on a new, time-stamped sheet
+write.xlsx(as.data.frame(small_cube), file = paste("viewers/", viewer_file, sep = ""),
+           row.names = FALSE, col.names = TRUE, sheetName = paste("taken_", time_of_run, sep = ""),
+           showNA = TRUE, append = TRUE)
+
+
+
+# example code that also gives memory error with the viewer file...
+#wb <- loadWorkbook(paste("viewers/", viewer_file, sep = ""))
+#writeData(wb, sheet = "report", dfReport)
+#saveWorkbook(wb,"Report.xlsx",overwrite = T)
