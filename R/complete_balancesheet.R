@@ -53,6 +53,20 @@ for (i in 4:44) {
 
 fdp <- rbind(fdp_eun, fdp_e14, fdp_nms)
 
+# save the data on fresh dairy commodities in R format
+time_of_run <- format(Sys.time(), "%Y-%m-%d-%Hh%M")
+save(fdp, file = paste("data/fdp_", time_of_run, ".Rdata", sep = ""))
+
+
+
+# Alternatively, load FDP products data from the .RData file
+# (if previously processed)
+load("data/fdp_2025-10-16-12h15.Rdata")
+# time stamp
+time_of_run <- format(Sys.time(), "%Y-%m-%d-%Hh%M")
+
+
+
 # calculate QC = QP-NT
 x <- fdp %>% pivot_longer(starts_with("20"),names_to = "year",values_to = "value")
 
@@ -72,10 +86,6 @@ x_qc <- x_qc %>% mutate(qc = qp - nt)
 
 # write QC and QP to Excel
 
-# time stamp
-time_of_run <- format(Sys.time(), "%Y-%m-%d-%Hh%M")
-
-
 # QC
 to_excel <- x_qc %>% select(-nt,-qp) %>% pivot_wider(names_from = year, values_from = qc) 
 
@@ -91,4 +101,74 @@ to_excel <- x_qc %>% select(-nt,-qc) %>% pivot_wider(names_from = year, values_f
 write.xlsx(as.data.frame(to_excel), file = paste("reporting/fdps_qp_", time_of_run, ".xlsx", sep = ""),
            row.names = FALSE, col.names = TRUE, sheetName = "qp",
            showNA = TRUE)
+
+
+# Calculate FOA, by adding waste to FO
+# this would be TRUE..FO + share * FDP_WST..DIST
+# the shares are NMS/E14 specific
+
+x <- fdp %>% pivot_longer(starts_with("20"),names_to = "year",values_to = "value")
+
+# Get TRUE..FO
+x_truefo <- x %>% filter(region != "EUN", attribute == "TRUE..FO") %>% 
+  group_by(region,product,year) %>% summarise( value = sum(value))
+
+x_truefo <- ungroup(x_truefo)
+
+# Get WST..DIST
+
+
+# Create waste for the fresh dairy products
+waste_cream <- x_wstdist
+waste_cream$product <- "Cream"
+waste_cream <- waste_cream %>% mutate(value = 0.6*value)
+
+calculate_waste <- function(fdp_data = fdp, fdp_product = "Cream", waste_share = 0.08, eu_region){
+  
+  x_wstdist <- x %>% filter(region != "EUN", attribute == "WST..DIST", region == eu_region) %>% 
+    group_by(region,product,year) %>% summarise( value = sum(value))
+  x_wstdist <- ungroup(x_wstdist)  
+  
+  waste <- x_wstdist
+  waste$product <- fdp_product
+  waste <- waste %>% mutate(value = waste_share*value)
+  
+  return(waste)  
+}
+
+waste_dmilk_nms <- calculate_waste(fdp_data = fdp, fdp_product = "Milk",  waste_share = 0.6, eu_region = "NMS")
+waste_cream_nms <- calculate_waste(fdp_data = fdp, fdp_product = "Cream", waste_share = 0.08, eu_region = "NMS")
+waste_yogurt_nms <- calculate_waste(fdp_data = fdp, fdp_product = "Yogurt", waste_share = 0.3, eu_region = "NMS")
+
+waste_dmilk_e14 <- calculate_waste(fdp_data = fdp, fdp_product = "Milk",  waste_share = 0.6, eu_region = "E14")
+waste_cream_e14 <- calculate_waste(fdp_data = fdp, fdp_product = "Cream", waste_share = 0.05, eu_region = "E14")
+waste_yogurt_e14 <- calculate_waste(fdp_data = fdp, fdp_product = "Yogurt", waste_share = 0.2, eu_region = "E14")
+
+to_excel <- rbind(waste_cream_e14, waste_cream_nms, waste_dmilk_e14, waste_dmilk_nms, waste_yogurt_e14, waste_yogurt_nms)
+to_excel <- to_excel %>% pivot_wider(names_from = year)
+
+write.xlsx(as.data.frame(to_excel), file = paste("reporting/waste_fdps_", time_of_run, ".xlsx", sep = ""),
+           row.names = FALSE, col.names = TRUE, sheetName = "wst..dist",
+           showNA = TRUE)
+
+# Calculate FOA per capita, by adding waste to FO..POP
+# this would be FO..POP + (WST..DIST(calculated above) / population)
+# Enough to do it for EUN
+
+x <- fdp %>% pivot_longer(starts_with("20"),names_to = "year",values_to = "value")
+
+# Get FO..POP
+x_fopop <- x %>% filter(region == "EUN", attribute == "FO..POP") %>% 
+  group_by(region,product,year) %>% summarise( value = sum(value))
+
+x_fopop <- ungroup(x_fopop)
+
+# Get FO
+x_fo <- x %>% filter(region == "EUN", attribute == "FO") %>% 
+  group_by(region,product,year) %>% summarise( value = sum(value))
+
+x_fo <- ungroup(x_fo)
+
+
+# Calculate population as population = FO / FO..POP
 
