@@ -61,7 +61,8 @@ save(fdp, file = paste("data/fdp_", time_of_run, ".Rdata", sep = ""))
 
 # Alternatively, load FDP products data from the .RData file
 # (if previously processed)
-load("data/fdp_2025-10-16-12h15.Rdata")
+#load("data/fdp_2025-10-16-12h15.Rdata")
+
 # time stamp
 time_of_run <- format(Sys.time(), "%Y-%m-%d-%Hh%M")
 

@@ -4,8 +4,11 @@ library(readxl)
 library(tidyverse)
 library(xlsx)
 
-viewer_file <- "DAIRY_viewer_2025.10.10_16h45.xlsx"
-merge_file <- "EUN_EUNMERGE_10102025_16h45.xlsx"
+
+# note that you need to create the viewer file manually
+# by duplicating and renaming the previous viewer
+viewer_file <- "DAIRY_viewer_2025.11.04_10h00.xlsx"
+merge_file <- "EUN_EUNMERGE_04112025_10h_00.xlsx"
 
 # time stamp of running this script
 # this time stamp will be used for all output files
