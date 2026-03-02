@@ -7,8 +7,8 @@ library(xlsx)
 
 # note that you need to create the viewer file manually
 # by duplicating and renaming the previous viewer
-viewer_file <- "DAIRY_viewer_2025.11.04_10h00.xlsx"
-merge_file <- "EUN_EUNMERGE_04112025_10h_00.xlsx"
+viewer_file <- "DAIRY_viewer_2025.11.20_16h50.xlsx"
+merge_file <- "EUN_EUNMERGE_20112025_16h50.xlsx"
 
 # time stamp of running this script
 # this time stamp will be used for all output files

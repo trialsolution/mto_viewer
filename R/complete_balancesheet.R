@@ -64,7 +64,7 @@ save(fdp, file = paste("data/fdp_", time_of_run, ".Rdata", sep = ""))
 #load("data/fdp_2025-10-16-12h15.Rdata")
 
 # time stamp
-time_of_run <- format(Sys.time(), "%Y-%m-%d-%Hh%M")
+#time_of_run <- format(Sys.time(), "%Y-%m-%d-%Hh%M")
 
 
 
@@ -117,6 +117,10 @@ x_truefo <- x %>% filter(region != "EUN", attribute == "TRUE..FO") %>%
 x_truefo <- ungroup(x_truefo)
 
 # Get WST..DIST
+x_wstdist <- x %>% filter(region != "EUN", attribute == "WST..DIST") %>% 
+  group_by(region,product,year) %>% summarise( value = sum(value))
+
+x_wstdist <- ungroup(x_wstdist)
 
 
 # Create waste for the fresh dairy products
@@ -172,4 +176,18 @@ x_fo <- ungroup(x_fo)
 
 
 # Calculate population as population = FO / FO..POP
+
+
+
+# calculate ST and PRST for butter and SMP
+#----------------------------------------
+load("C:/Users/himicmi/Downloads/meltdown2025/data/cube_EUN_EUNMERGE_20112025_16h50.xlsx_2025-11-24-15h14.Rdata")
+
+
+# butter ending stock in 2005
+bt_end_2005 <- 100
+
+stocks <- cube %>% filter(region == "EUN", product %in% c("BT","SMP"), attribute %in% c("VST", "VST..PRST", "IST", "ST")) 
+
+
 
