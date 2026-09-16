@@ -6,7 +6,9 @@ library(xlsx)
 
 
 # EUN
-
+# The Dairy master file is located on a shared drive (mapped to Y:)
+# both JRC and AGRI has access to this drive, which is copied over to the virtual machines for Aglink runs
+#
 fdp_eun <- read_excel("Y:/work/EUNDAIRY.xlsx", sheet = "EUNDAIRYDB", range = "M457:BD483", 
                       col_names = FALSE, col_types = c(rep("text",3), rep("numeric",41)))
 fdp_eun <- as_tibble(fdp_eun)
@@ -122,8 +124,19 @@ x_wstdist <- x %>% filter(region != "EUN", attribute == "WST..DIST") %>%
 
 x_wstdist <- ungroup(x_wstdist)
 
-
-# Create waste for the fresh dairy products
+#
+# Calculate the waste for the fresh dairy products
+# The waste share coefficients are those used in the EUNDAIRY master file
+# The coefficients allocate the total waste of Fresh dairy to the different frash dairy subcategories:
+# -  Cream: 8%
+# -  Drinking milk: 60%
+# -  Yogurt: 30%
+# -  The category 'Other' will close the balance, i.e. its waste share is 100% - sum(cream, drinking m., yogurt)
+#
+# Be aware:  
+#           - need to update this coeffs here manually if necessary
+#           - coeffs are different for the EU regions
+#
 waste_cream <- x_wstdist
 waste_cream$product <- "Cream"
 waste_cream <- waste_cream %>% mutate(value = 0.6*value)
@@ -156,10 +169,12 @@ write.xlsx(as.data.frame(to_excel), file = paste("reporting/waste_fdps_", time_o
            row.names = FALSE, col.names = TRUE, sheetName = "wst..dist",
            showNA = TRUE)
 
-# Calculate FOA per capita, by adding waste to FO..POP
-# this would be FO..POP + (WST..DIST(calculated above) / population)
-# Enough to do it for EUN
-
+#
+# Calculate food availability (FOA) per capita, by adding waste to FO..POP (food use)
+# FOA..POP = FO..POP + (WST..DIST(calculated above) / population)
+#
+# We only calculate it for EUN because this is what we publish in the MTO pink sheets
+#
 x <- fdp %>% pivot_longer(starts_with("20"),names_to = "year",values_to = "value")
 
 # Get FO..POP
