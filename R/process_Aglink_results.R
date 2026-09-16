@@ -7,8 +7,8 @@ library(xlsx)
 
 # note that you need to create the viewer file manually
 # by duplicating and renaming the previous viewer
-viewer_file <- "DAIRY_viewer_2025.11.20_16h50.xlsx"
-merge_file <- "EUN_EUNMERGE_20112025_16h50.xlsx"
+viewer_file <- "DAIRY_viewer_20260915_118h36.xlsx"
+merge_file <- "EUNMERGE_20260915.xlsx"
 
 # time stamp of running this script
 # this time stamp will be used for all output files
@@ -21,6 +21,10 @@ source("R/filter_results.R")
 
 # read results
 cube <- read_excel(paste("mergefiles/", merge_file, sep = ""), sheet = 1)
+
+# drop first column if the composite variable column is included in the merge file
+# the column including e.g. WLD_ME_GDP
+cube <- cube %>% select(-VAR)
 
 # name first columns
 colnames(cube)[1] <- "region"
@@ -41,7 +45,8 @@ save(cube, file = paste("data/cube_", merge_file, "_", time_of_run, ".Rdata", se
 
 # update variable list from the viewer, if needed 
 #extract_variable_list(viewer = viewer_file)
-# load variable list -- my_selection
+
+# if no additional variables needed, simply: load variable list from earlier runs -- my_selection
 load(file = "data/my_selection.RData")
 
 # filter the big cube
