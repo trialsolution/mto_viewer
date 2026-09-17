@@ -7,8 +7,9 @@ library(xlsx)
 
 # note that you need to create the viewer file manually
 # by duplicating and renaming the previous viewer
-viewer_file <- "DAIRY_viewer_20260915_118h36.xlsx"
-merge_file <- "EUNMERGE_20260915.xlsx"
+merge_file <- "EUNmerge_20260917_16h10.xlsx"
+viewer_file <- "DAIRY_viewer_20260917_16h10.xlsx"
+
 
 # time stamp of running this script
 # this time stamp will be used for all output files
@@ -24,7 +25,7 @@ cube <- read_excel(paste("mergefiles/", merge_file, sep = ""), sheet = 1)
 
 # drop first column if the composite variable column is included in the merge file
 # the column including e.g. WLD_ME_GDP
-cube <- cube %>% select(-VAR)
+#cube <- cube %>% select(-VAR)
 
 # name first columns
 colnames(cube)[1] <- "region"
